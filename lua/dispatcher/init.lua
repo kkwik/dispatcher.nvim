@@ -104,9 +104,10 @@ M.create_patch_window = function()
 end
 
 ---@param operation_result GitOperationResult
----@returns string
-M.git_op_result_to_string = function(operation_result)
-	local text = operation_result.name .. "\n"
+---@returns table
+M.git_op_result_to_table = function(operation_result)
+	local lines = {}
+	table.insert(lines, operation_result.name)
 
 	for patch, status in pairs(operation_result.results) do
 		local status_text = ""
@@ -119,28 +120,33 @@ M.git_op_result_to_string = function(operation_result)
 			status_text = "failed"
 		end
 
-		text = text .. patch .. ": " .. status_text .. "\n"
+		table.insert(lines, patch .. ": " .. status_text)
 	end
 
-	return text
+	return lines
 end
 
 ---@param operation_results GitOperationResult[]
----@returns string
-M.list_of_git_ops_result_to_string = function(operation_results)
-	local text = ""
+---@returns table
+M.list_of_git_ops_result_to_table = function(operation_results)
+	local lines = {}
 
 	for _, result in ipairs(operation_results) do
-		text = text .. M.git_op_result_to_string(result)
+		local result_lines = M.git_op_result_to_table(result)
+
+		for _, line in ipairs(result_lines) do
+			table.insert(lines, line)
+		end
+		table.insert(lines, "")
 	end
 
-	return text
+	return lines
 end
 
 ---@param operation_results GitOperationResult[]
 M.show_results = function(operation_results)
 	local buf = M.create_patch_window()
-	vim.api.nvim_buf_set_lines(buf, 0, 0, false, M.list_of_git_ops_result_to_string(operation_results))
+	vim.api.nvim_buf_set_lines(buf, 0, 0, false, M.list_of_git_ops_result_to_table(operation_results))
 end
 
 ---
