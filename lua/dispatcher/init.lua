@@ -168,14 +168,23 @@ M.show_results = function(operation_results, window_title)
 end
 
 ---
---- Apply Patches
+--- Application Helpers
 ---
 
 ---@param plugin_data PluginData
+---@param git_op string[]
+---@param sort_reverse boolean
 ---@return GitOperationResult
-M.apply_plugin_patches = function(plugin_data)
+M.apply_git_op_to_plugin = function(plugin_data, git_op, sort_reverse)
 	local patches = vim.fn.deepcopy(plugin_data.source_paths)
-	table.sort(patches)
+
+	if sort_reverse then
+		table.sort(patches)
+	else
+		table.sort(patches, function(a, b)
+			return a > b
+		end)
+	end
 
 	---@type GitOperationResult
 	local git_apply_results = {
@@ -188,24 +197,43 @@ M.apply_plugin_patches = function(plugin_data)
 	end
 
 	for _, patch in ipairs(patches) do
-		local result_code = vim.system({ "git", "-C", plugin_data.target_path, "apply", patch }):wait()
+		local command = vim.fn.deepcopy(git_op)
+		table.insert(command, patch)
+
+		local result_code = vim.system(command):wait()
 		git_apply_results.results[patch] = result_code.code == 0
 	end
 
 	return git_apply_results
 end
 
+---@param f fun(PluginData): GitOperationResult
 ---@return GitOperationResult[]
-M.apply_all_patches = function()
+M.map_over_all_plugins = function(f)
 	---@type GitOperationResult[]
 	local results = {}
 
 	for _, plugin in ipairs(M.patched_plugins) do
-		local plugin_apply_result = M.apply_plugin_patches(plugin)
-		table.insert(results, plugin_apply_result)
+		local application_result = f(plugin)
+		table.insert(results, application_result)
 	end
 
 	return results
+end
+
+---
+--- Apply Patches
+---
+
+---@param plugin_data PluginData
+---@return GitOperationResult
+M.apply_plugin_patches = function(plugin_data)
+	return M.apply_git_op_to_plugin(plugin_data, { "git", "-C", plugin_data.target_path, "apply" }, false)
+end
+
+---@return GitOperationResult[]
+M.apply_all_patches = function()
+	return M.map_over_all_plugins(M.apply_plugin_patches)
 end
 
 ---
@@ -215,40 +243,12 @@ end
 ---@param plugin_data PluginData
 ---@return GitOperationResult
 M.reset_plugin_patches = function(plugin_data)
-	local patches = vim.fn.deepcopy(plugin_data.source_paths)
-	table.sort(patches, function(a, b)
-		return a > b
-	end)
-
-	---@type GitOperationResult
-	local git_reset_results = {
-		name = plugin_data.name,
-		results = {},
-	}
-
-	for _, patch in ipairs(patches) do
-		git_reset_results.results[patch] = nil
-	end
-
-	for _, patch in ipairs(patches) do
-		local result_code = vim.system({ "git", "-C", plugin_data.target_path, "apply", "--reverse", patch }):wait()
-		git_reset_results.results[patch] = result_code.code == 0
-	end
-
-	return git_reset_results
+	return M.apply_git_op_to_plugin(plugin_data, { "git", "-C", plugin_data.target_path, "apply", "--reverse" }, true)
 end
 
 ---@return GitOperationResult[]
 M.reset_all_patches = function()
-	---@type GitOperationResult[]
-	local results = {}
-
-	for _, plugin in ipairs(M.patched_plugins) do
-		local plugin_reset_result = M.reset_plugin_patches(plugin)
-		table.insert(results, plugin_reset_result)
-	end
-
-	return results
+	return M.map_over_all_plugins(M.reset_plugin_patches)
 end
 
 ---
@@ -258,39 +258,16 @@ end
 ---@param plugin_data PluginData
 ---@return GitOperationResult
 M.plugin_patches_applied = function(plugin_data)
-	local patches = vim.fn.deepcopy(plugin_data.source_paths)
-	table.sort(patches)
-
-	---@type GitOperationResult
-	local git_check_results = {
-		name = plugin_data.name,
-		results = {},
-	}
-
-	for _, patch in ipairs(patches) do
-		git_check_results.results[patch] = nil
-	end
-
-	for _, patch in ipairs(patches) do
-		local result_code = vim.system({ "git", "-C", plugin_data.target_path, "apply", "--reverse", "--check", patch })
-			:wait()
-		git_check_results.results[patch] = result_code.code == 0
-	end
-
-	return git_check_results
+	return M.apply_git_op_to_plugin(
+		plugin_data,
+		{ "git", "-C", plugin_data.target_path, "apply", "--reverse", "--check" },
+		false
+	)
 end
 
 ---@return GitOperationResult[]
 M.all_plugin_patches_applied = function()
-	---@type GitOperationResult[]
-	local results = {}
-
-	for _, plugin in ipairs(M.patched_plugins) do
-		local plugin_check_result = M.plugin_patches_applied(plugin)
-		table.insert(results, plugin_check_result)
-	end
-
-	return results
+	return M.map_over_all_plugins(M.plugin_patches_applied)
 end
 
 return M
