@@ -27,6 +27,22 @@ M.setup = function(cfg)
 
 	M.config = vim.tbl_deep_extend("force", M.default_config, cfg)
 
+	if vim.fn.isdirectory(M.config.patches_directory) == 0 then
+		vim.notify(
+			"Dispatcher: could not find configured patches directory {" .. M.config.patches_directory .. "}",
+			vim.log.levels.WARN
+		)
+		return
+	end
+
+	if vim.fn.isdirectory(M.config.plugin_directory) == 0 then
+		vim.notify(
+			"Dispatcher: could not find configured plugin directory {" .. M.config.plugin_directory .. "}",
+			vim.log.levels.WARN
+		)
+		return
+	end
+
 	---@type PluginData[]
 	M.patched_plugins = M.setup_plugin_data()
 end
