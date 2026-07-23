@@ -99,6 +99,8 @@ end
 --- Display
 ---
 
+---@param window_title string
+---@return integer
 M.create_patch_window = function(window_title)
 	local win_width = vim.fn.winwidth(0)
 	local win_height = vim.fn.winheight(0)
@@ -122,7 +124,7 @@ M.create_patch_window = function(window_title)
 end
 
 ---@param operation_result GitOperationResult
----@returns table
+---@returns string[]
 M.git_op_result_to_table = function(operation_result)
 	local lines = {}
 	table.insert(lines, operation_result.name)
@@ -145,7 +147,7 @@ M.git_op_result_to_table = function(operation_result)
 end
 
 ---@param operation_results GitOperationResult[]
----@returns table
+---@returns string[]
 M.list_of_git_ops_result_to_table = function(operation_results)
 	local lines = {}
 
@@ -162,6 +164,7 @@ M.list_of_git_ops_result_to_table = function(operation_results)
 end
 
 ---@param operation_results GitOperationResult[]
+---@param window_title string
 M.show_results = function(operation_results, window_title)
 	local buf = M.create_patch_window(window_title)
 	vim.api.nvim_buf_set_lines(buf, 0, 0, false, M.list_of_git_ops_result_to_table(operation_results))
