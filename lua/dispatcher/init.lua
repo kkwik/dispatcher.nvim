@@ -4,12 +4,12 @@ local M = {}
 --- Types, Config, Setup
 ---
 
----@class PluginData
+---@class (exact) PluginData
 ---@field name string
 ---@field target_path string
 ---@field source_paths string[]
 
----@class GitOperationResult
+---@class (exact) GitOperationResult
 ---@field name string
 ---@field results { [string]: boolean? }
 
@@ -172,7 +172,7 @@ end
 ---
 
 ---@param plugin_data PluginData
----@return GitOperationResult[]
+---@return GitOperationResult
 M.apply_plugin_patches = function(plugin_data)
 	local patches = vim.fn.deepcopy(plugin_data.source_paths)
 	table.sort(patches)
@@ -195,6 +195,7 @@ M.apply_plugin_patches = function(plugin_data)
 	return git_apply_results
 end
 
+---@return GitOperationResult[]
 M.apply_all_patches = function()
 	---@type GitOperationResult[]
 	local results = {}
@@ -212,7 +213,7 @@ end
 ---
 
 ---@param plugin_data PluginData
----@return GitOperationResult[]
+---@return GitOperationResult
 M.reset_plugin_patches = function(plugin_data)
 	local patches = vim.fn.deepcopy(plugin_data.source_paths)
 	table.sort(patches, function(a, b)
