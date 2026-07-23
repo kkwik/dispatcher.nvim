@@ -1,5 +1,9 @@
 local M = {}
 
+---
+--- Types, Config, Setup
+---
+
 ---@class PluginData
 ---@field name string
 ---@field target_path string
@@ -58,6 +62,10 @@ M.setup_plugin_data = function()
 	return return_data
 end
 
+---
+--- Utility Functions
+---
+
 ---@param path string
 ---@return string[]
 M.get_dir_children = function(path)
@@ -69,7 +77,78 @@ M.get_plugin_patch_directories = function()
 	return M.get_dir_children(M.config.patches_directory)
 end
 
+---
+--- Display
+---
+
+M.create_patch_window = function()
+	local win_width = vim.fn.winwidth(0)
+	local win_height = vim.fn.winheight(0)
+	local editor_width = vim.opt.columns._value
+	local left_start = (editor_width - win_width) / 2
+	local margin = 4
+
+	local buf = vim.api.nvim_create_buf(false, true)
+	local win = vim.api.nvim_open_win(buf, true, {
+		relative = "editor",
+		row = margin,
+		col = left_start + margin,
+		width = win_width - (2 * margin),
+		height = win_height - (2 * margin),
+		style = "minimal",
+		border = { "╔", "═", "╗", "║", "╝", "═", "╚", "║" },
+		title = "Patch Status",
+	})
+
+	return buf
+end
+
+---@param operation_result GitOperationResult
+---@returns string
+M.git_op_result_to_string = function(operation_result)
+	local text = operation_result.name .. "\n"
+
+	for patch, status in pairs(operation_result.results) do
+		local status_text = ""
+
+		if status == nil then
+			status_text = "not run"
+		elseif status == true then
+			status_text = "success"
+		else
+			status_text = "failed"
+		end
+
+		text = text .. patch .. ": " .. status_text .. "\n"
+	end
+
+	return text
+end
+
+---@param operation_results GitOperationResult[]
+---@returns string
+M.list_of_git_ops_result_to_string = function(operation_results)
+	local text = ""
+
+	for _, result in ipairs(operation_results) do
+		text = text .. M.git_op_result_to_string(result)
+	end
+
+	return text
+end
+
+---@param operation_results GitOperationResult[]
+M.show_results = function(operation_results)
+	local buf = M.create_patch_window()
+	vim.api.nvim_buf_set_lines(buf, 0, 0, false, M.list_of_git_ops_result_to_string(operation_results))
+end
+
+---
+--- Apply Patches
+---
+
 ---@param plugin_data PluginData
+---@return GitOperationResult[]
 M.apply_plugin_patches = function(plugin_data)
 	local patches = vim.fn.deepcopy(plugin_data.source_paths)
 	table.sort(patches)
@@ -89,7 +168,7 @@ M.apply_plugin_patches = function(plugin_data)
 		git_apply_results.results[patch] = result_code == 0
 	end
 
-	return git_apply_results
+	return { git_apply_results }
 end
 
 M.apply_all_patches = function()
@@ -104,8 +183,12 @@ M.apply_all_patches = function()
 	return results
 end
 
+---
+--- Reset Patches
+---
+
 ---@param plugin_data PluginData
----@return GitOperationResult
+---@return GitOperationResult[]
 M.reset_plugin_patches = function(plugin_data)
 	local patches = vim.fn.deepcopy(plugin_data.source_paths)
 	table.sort(patches, function(a, b)
@@ -127,7 +210,7 @@ M.reset_plugin_patches = function(plugin_data)
 		git_reset_results.results[patch] = result_code == 0
 	end
 
-	return git_reset_results
+	return { git_reset_results }
 end
 
 ---@return GitOperationResult[]
