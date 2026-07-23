@@ -251,4 +251,46 @@ M.reset_all_patches = function()
 	return results
 end
 
+---
+--- Check Patches
+---
+
+---@param plugin_data PluginData
+---@return GitOperationResult
+M.plugin_patches_applied = function(plugin_data)
+	local patches = vim.fn.deepcopy(plugin_data.source_paths)
+	table.sort(patches)
+
+	---@type GitOperationResult
+	local git_check_results = {
+		name = plugin_data.name,
+		results = {},
+	}
+
+	for _, patch in ipairs(patches) do
+		git_check_results.results[patch] = nil
+	end
+
+	for _, patch in ipairs(patches) do
+		local result_code = vim.system({ "git", "-C", plugin_data.target_path, "apply", "--reverse", "--check", patch })
+			:wait()
+		git_check_results.results[patch] = result_code.code == 0
+	end
+
+	return git_check_results
+end
+
+---@return GitOperationResult[]
+M.all_plugin_patches_applied = function()
+	---@type GitOperationResult[]
+	local results = {}
+
+	for _, plugin in ipairs(M.patched_plugins) do
+		local plugin_check_result = M.plugin_patches_applied(plugin)
+		table.insert(results, plugin_check_result)
+	end
+
+	return results
+end
+
 return M
