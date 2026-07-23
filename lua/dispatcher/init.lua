@@ -33,13 +33,9 @@ end
 
 ---@return PluginData[]
 M.setup_plugin_data = function()
-	local function basename(path)
-		return path:sub(path:find("/[^/]*$") + 1)
-	end
-
 	local return_data = {}
 	for _, plugin_patch_dir in ipairs(M.get_plugin_patch_directories()) do
-		local plugin_name = basename(plugin_patch_dir)
+		local plugin_name = M.basename(plugin_patch_dir)
 		local plugin_target_dir = M.config.plugin_directory .. "/" .. plugin_name
 
 		if vim.fn.isdirectory(plugin_target_dir) then
@@ -75,6 +71,12 @@ end
 ---@return string[]
 M.get_plugin_patch_directories = function()
 	return M.get_dir_children(M.config.patches_directory)
+end
+
+---@param path string
+---@return string
+M.basename = function(path)
+	return path:sub(path:find("/[^/]*$") + 1)
 end
 
 ---
@@ -120,7 +122,7 @@ M.git_op_result_to_table = function(operation_result)
 			status_text = "failed"
 		end
 
-		table.insert(lines, patch .. ": " .. status_text)
+		table.insert(lines, M.basename(patch) .. ": " .. status_text)
 	end
 
 	return lines
