@@ -173,7 +173,7 @@ M.apply_plugin_patches = function(plugin_data)
 
 	for _, patch in ipairs(patches) do
 		local result_code = vim.system({ "git", "-C", plugin_data.target_path, "apply", patch }):wait()
-		git_apply_results.results[patch] = result_code == 0
+		git_apply_results.results[patch] = result_code.code == 0
 	end
 
 	return git_apply_results
@@ -215,7 +215,7 @@ M.reset_plugin_patches = function(plugin_data)
 
 	for _, patch in ipairs(patches) do
 		local result_code = vim.system({ "git", "-C", plugin_data.target_path, "apply", "--reverse", patch }):wait()
-		git_reset_results.results[patch] = result_code == 0
+		git_reset_results.results[patch] = result_code.code == 0
 	end
 
 	return git_reset_results
