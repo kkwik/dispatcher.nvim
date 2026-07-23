@@ -168,7 +168,7 @@ M.apply_plugin_patches = function(plugin_data)
 		git_apply_results.results[patch] = result_code == 0
 	end
 
-	return { git_apply_results }
+	return git_apply_results
 end
 
 M.apply_all_patches = function()
@@ -210,7 +210,7 @@ M.reset_plugin_patches = function(plugin_data)
 		git_reset_results.results[patch] = result_code == 0
 	end
 
-	return { git_reset_results }
+	return git_reset_results
 end
 
 ---@return GitOperationResult[]
