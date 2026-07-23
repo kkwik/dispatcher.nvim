@@ -83,7 +83,7 @@ end
 --- Display
 ---
 
-M.create_patch_window = function()
+M.create_patch_window = function(window_title)
 	local win_width = vim.fn.winwidth(0)
 	local win_height = vim.fn.winheight(0)
 	local editor_width = vim.opt.columns._value
@@ -99,7 +99,7 @@ M.create_patch_window = function()
 		height = win_height - (2 * margin),
 		style = "minimal",
 		border = { "╔", "═", "╗", "║", "╝", "═", "╚", "║" },
-		title = "Patch Status",
+		title = window_title,
 	})
 
 	return buf
@@ -146,8 +146,8 @@ M.list_of_git_ops_result_to_table = function(operation_results)
 end
 
 ---@param operation_results GitOperationResult[]
-M.show_results = function(operation_results)
-	local buf = M.create_patch_window()
+M.show_results = function(operation_results, window_title)
+	local buf = M.create_patch_window(window_title)
 	vim.api.nvim_buf_set_lines(buf, 0, 0, false, M.list_of_git_ops_result_to_table(operation_results))
 end
 
