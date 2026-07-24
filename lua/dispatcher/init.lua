@@ -45,6 +45,12 @@ M.setup = function(cfg)
 
 	---@type PluginData[]
 	M.patched_plugins = M.setup_plugin_data()
+
+	if M.config.check_on_startup == true then
+		if not M.all_plugin_patches_applied() then
+			vim.notify("Not all plugins patched, run :Dispatcher status for details", vim.log.levels.WARN)
+		end
+	end
 end
 
 ---@return PluginData[]
