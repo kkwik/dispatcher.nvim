@@ -211,9 +211,9 @@ M.apply_git_op_to_plugin = function(plugin_data, git_op, sort_reverse)
 end
 
 ---@param f fun(PluginData): GitOperationResult
----@return GitOperationResult[]
+---@return any[]
 M.map_over_all_plugins = function(f)
-	---@type GitOperationResult[]
+	---@type any[]
 	local results = {}
 
 	for _, plugin in ipairs(M.patched_plugins) do
@@ -260,7 +260,7 @@ end
 
 ---@param plugin_data PluginData
 ---@return GitOperationResult
-M.plugin_patches_applied = function(plugin_data)
+M.plugin_patches_status = function(plugin_data)
 	return M.apply_git_op_to_plugin(
 		plugin_data,
 		{ "git", "-C", plugin_data.target_path, "apply", "--reverse", "--check" },
@@ -269,8 +269,35 @@ M.plugin_patches_applied = function(plugin_data)
 end
 
 ---@return GitOperationResult[]
+M.all_plugin_patches_status = function()
+	return M.map_over_all_plugins(M.plugin_patches_status)
+end
+
+---@param plugin_data PluginData
+---@return boolean
+M.plugin_patches_applied = function(plugin_data)
+	local git_op_results = M.plugin_patches_status(plugin_data)
+
+	for _, value in pairs(git_op_results.results) do
+		if value == false then
+			return false
+		end
+	end
+
+	return true
+end
+
+---@return boolean
 M.all_plugin_patches_applied = function()
-	return M.map_over_all_plugins(M.plugin_patches_applied)
+	local patches_applied = M.map_over_all_plugins(M.plugin_patches_applied)
+
+	for _, value in ipairs(patches_applied) do
+		if value == false then
+			return false
+		end
+	end
+
+	return true
 end
 
 return M
