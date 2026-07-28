@@ -1,4 +1,5 @@
 local M = {}
+local G = require("dispatcher.git")
 
 ---
 --- Types, Config, Setup
@@ -268,42 +269,6 @@ end
 --- Application Helpers
 ---
 
----@param plugin_data PluginData
----@param git_op string[]
----@param sort_reverse boolean
----@return GitOperationResult
-M.apply_git_op_to_plugin = function(plugin_data, git_op, sort_reverse)
-	local patches = vim.fn.deepcopy(plugin_data.source_paths)
-
-	if sort_reverse then
-		table.sort(patches)
-	else
-		table.sort(patches, function(a, b)
-			return a > b
-		end)
-	end
-
-	---@type GitOperationResult
-	local git_apply_results = {
-		name = plugin_data.name,
-		results = {},
-	}
-
-	for _, patch in ipairs(patches) do
-		git_apply_results.results[patch] = nil
-	end
-
-	for _, patch in ipairs(patches) do
-		local command = vim.fn.deepcopy(git_op)
-		table.insert(command, patch)
-
-		local result_code = vim.system(command):wait()
-		git_apply_results.results[patch] = result_code.code == 0
-	end
-
-	return git_apply_results
-end
-
 ---@param f fun(PluginData): GitOperationResult
 ---@return any[]
 M.map_over_all_plugins = function(f)
@@ -325,7 +290,7 @@ end
 ---@param plugin_data PluginData
 ---@return GitOperationResult
 M.apply_plugin_patches = function(plugin_data)
-	return M.apply_git_op_to_plugin(plugin_data, { "git", "-C", plugin_data.target_path, "apply" }, false)
+	return G.apply_git_action_to_plugin(plugin_data, "patch", false)
 end
 
 ---@return GitOperationResult[]
@@ -340,7 +305,7 @@ end
 ---@param plugin_data PluginData
 ---@return GitOperationResult
 M.reset_plugin_patches = function(plugin_data)
-	return M.apply_git_op_to_plugin(plugin_data, { "git", "-C", plugin_data.target_path, "apply", "--reverse" }, true)
+	return G.apply_git_action_to_plugin(plugin_data, "unpatch", true)
 end
 
 ---@return GitOperationResult[]
@@ -355,11 +320,7 @@ end
 ---@param plugin_data PluginData
 ---@return GitOperationResult
 M.plugin_patches_status = function(plugin_data)
-	return M.apply_git_op_to_plugin(
-		plugin_data,
-		{ "git", "-C", plugin_data.target_path, "apply", "--reverse", "--check" },
-		false
-	)
+	return G.apply_git_action_to_plugin(plugin_data, "status", false)
 end
 
 ---@return GitOperationResult[]
