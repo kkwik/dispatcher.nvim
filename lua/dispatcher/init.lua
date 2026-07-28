@@ -15,6 +15,7 @@ local M = {}
 
 M.default_config = {
 	check_on_startup = false,
+	create_user_commands = true,
 	patches_directory = vim.fn.stdpath("config") .. "/patches",
 	plugin_directory = vim.fn.stdpath("data") .. "/site/pack/core/opt",
 }
@@ -51,6 +52,82 @@ M.setup = function(cfg)
 			vim.notify("Not all plugins patched, run :Dispatcher status for details", vim.log.levels.WARN)
 		end
 	end
+
+	if M.config.create_user_commands == true then
+		M.setup_user_commands()
+	end
+end
+
+M.setup_user_commands = function()
+	vim.api.nvim_create_user_command(
+		"Dispatcher",
+		M.handle_user_commands,
+		{ desc = "Run Dispatcher commands", nargs = "*" }
+	)
+end
+
+M.handle_user_commands = function(opts)
+	local provided_args = opts.fargs
+
+	if #provided_args == 0 then
+		vim.notify("Dispatcher: provide args")
+	else
+		local commands = {
+			{ cmd = "patch", func = M.patch_user_command, nargs = "?" },
+			{ cmd = "unpatch", func = M.unpatch_user_command, nargs = "?" },
+		}
+
+		for _, u_cmd in ipairs(commands) do
+			if u_cmd.cmd == provided_args[1] then
+				if u_cmd.nargs == "?" then
+					u_cmd.func(provided_args[2])
+				else
+					vim.notify("Dispatcher: using nargs value that isn't implemented yet, oops")
+					return
+				end
+			end
+		end
+	end
+end
+
+---@param plugin_name string?
+M.patch_user_command = function(plugin_name)
+	if plugin_name == nil then
+		M.apply_all_patches()
+		return
+	else
+		local plugin_data = M.get_plugin_data(plugin_name)
+
+		if plugin_data == nil then
+			vim.notify("Dispatcher: failed to find plugin {" .. plugin_name .. "}")
+			return
+		end
+
+		local result = M.apply_plugin_patches(plugin_data)
+		if result.results == false then
+			vim.notify("Dispatcher: failed to patch plugin {" .. plugin_name("}"))
+		end
+	end
+end
+
+---@param plugin_name string?
+M.unpatch_user_command = function(plugin_name)
+	if plugin_name == nil then
+		M.reset_all_patches()
+		return
+	else
+		local plugin_data = M.get_plugin_data(plugin_name)
+
+		if plugin_data == nil then
+			vim.notify("Dispatcher: failed to find plugin {" .. plugin_name .. "}")
+			return
+		end
+
+		local result = M.reset_plugin_patches(plugin_data)
+		if result.results == false then
+			vim.notify("Dispatcher: failed to reset plugin {" .. plugin_name("}"))
+		end
+	end
 end
 
 ---@return PluginData[]
@@ -78,6 +155,17 @@ M.setup_plugin_data = function()
 	end
 
 	return return_data
+end
+
+---@param plugin_name string
+---@return PluginData?
+M.get_plugin_data = function(plugin_name)
+	for _, plugin_data in ipairs(M.patched_plugins) do
+		if plugin_data.name == plugin_name then
+			return plugin_data
+		end
+	end
+	return nil
 end
 
 ---

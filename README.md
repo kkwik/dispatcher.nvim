@@ -43,6 +43,9 @@ require("dispatcher").setup({
     -- Notify user via vim.notify() if any patches are not applied on startup
 	check_on_startup = false,
 
+    -- Create :Dispatcher user command
+	create_user_commands = true,
+
     -- The directory where you store your patches
 	patches_directory = vim.fn.stdpath("config") .. "/patches",
 
