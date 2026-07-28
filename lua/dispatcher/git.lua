@@ -40,7 +40,7 @@ setmetatable(git_actions, {
 ---@param plugin_data PluginData
 ---@param git_action_name string
 ---@param sort_reverse boolean
----@return GitOperationResult
+---@return PluginOperationResult
 G.apply_git_action_to_plugin = function(plugin_data, git_action_name, sort_reverse)
 	local patches = vim.fn.deepcopy(plugin_data.source_paths)
 
@@ -52,7 +52,7 @@ G.apply_git_action_to_plugin = function(plugin_data, git_action_name, sort_rever
 		end)
 	end
 
-	---@type GitOperationResult
+	---@type PluginOperationResult
 	local git_apply_results = {
 		name = plugin_data.name,
 		results = {},

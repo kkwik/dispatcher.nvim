@@ -10,7 +10,7 @@ local G = require("dispatcher.git")
 ---@field target_path string
 ---@field source_paths string[]
 
----@class (exact) GitOperationResult
+---@class (exact) PluginOperationResult
 ---@field name string
 ---@field results { [string]: boolean? }
 
@@ -151,7 +151,7 @@ M.create_patch_window = function(window_title)
 	return buf
 end
 
----@param operation_result GitOperationResult
+---@param operation_result PluginOperationResult
 ---@returns string[]
 M.git_op_result_to_table = function(operation_result)
 	local lines = {}
@@ -174,7 +174,7 @@ M.git_op_result_to_table = function(operation_result)
 	return lines
 end
 
----@param operation_results GitOperationResult[]
+---@param operation_results PluginOperationResult[]
 ---@returns string[]
 M.list_of_git_ops_result_to_table = function(operation_results)
 	local lines = {}
@@ -191,7 +191,7 @@ M.list_of_git_ops_result_to_table = function(operation_results)
 	return lines
 end
 
----@param operation_results GitOperationResult[]
+---@param operation_results PluginOperationResult[]
 ---@param window_title string
 M.show_results = function(operation_results, window_title)
 	local buf = M.create_patch_window(window_title)
@@ -202,7 +202,7 @@ end
 --- Application Helpers
 ---
 
----@param f fun(PluginData): GitOperationResult
+---@param f fun(PluginData): PluginOperationResult
 ---@return any[]
 M.map_over_all_plugins = function(f)
 	---@type any[]
@@ -221,12 +221,12 @@ end
 ---
 
 ---@param plugin_data PluginData
----@return GitOperationResult
+---@return PluginOperationResult
 M.apply_plugin_patches = function(plugin_data)
 	return G.apply_git_action_to_plugin(plugin_data, "patch", false)
 end
 
----@return GitOperationResult[]
+---@return PluginOperationResult[]
 M.apply_all_patches = function()
 	return M.map_over_all_plugins(M.apply_plugin_patches)
 end
@@ -236,12 +236,12 @@ end
 ---
 
 ---@param plugin_data PluginData
----@return GitOperationResult
+---@return PluginOperationResult
 M.reset_plugin_patches = function(plugin_data)
 	return G.apply_git_action_to_plugin(plugin_data, "unpatch", true)
 end
 
----@return GitOperationResult[]
+---@return PluginOperationResult[]
 M.reset_all_patches = function()
 	return M.map_over_all_plugins(M.reset_plugin_patches)
 end
@@ -251,12 +251,12 @@ end
 ---
 
 ---@param plugin_data PluginData
----@return GitOperationResult
+---@return PluginOperationResult
 M.plugin_patches_status = function(plugin_data)
 	return G.apply_git_action_to_plugin(plugin_data, "status", false)
 end
 
----@return GitOperationResult[]
+---@return PluginOperationResult[]
 M.all_plugin_patches_status = function()
 	return M.map_over_all_plugins(M.plugin_patches_status)
 end
