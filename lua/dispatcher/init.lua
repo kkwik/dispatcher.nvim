@@ -1,6 +1,5 @@
 local M = {}
 local G = require("dispatcher.git")
-local U = require("dispatcher.user_commands")
 
 ---
 --- Types, Config, Setup
