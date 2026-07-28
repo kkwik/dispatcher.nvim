@@ -84,18 +84,23 @@ M.setup_plugin_data = function()
 		end
 	end
 
-	return return_data
-end
+	-- Allow indexing by name
+	setmetatable(return_data, {
+		__index = function(self, desired_plugin_name)
+			if type(desired_plugin_name) ~= "string" then
+				return nil
+			end
 
----@param plugin_name string
----@return PluginData?
-M.get_plugin_data = function(plugin_name)
-	for _, plugin_data in ipairs(M.patched_plugins) do
-		if plugin_data.name == plugin_name then
-			return plugin_data
-		end
-	end
-	return nil
+			for _, plugin in ipairs(self) do
+				if plugin.name == desired_plugin_name then
+					return plugin
+				end
+			end
+			return nil
+		end,
+	})
+
+	return return_data
 end
 
 ---

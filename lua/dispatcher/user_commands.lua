@@ -4,7 +4,7 @@ local patch_user_command = function(plugin_name)
 		require("dispatcher").apply_all_patches()
 		return
 	else
-		local plugin_data = require("dispatcher").get_plugin_data(plugin_name)
+		local plugin_data = require("dispatcher").patched_plugins[plugin_name]
 
 		if plugin_data == nil then
 			vim.notify("Dispatcher: failed to find plugin {" .. plugin_name .. "}")
@@ -24,7 +24,7 @@ local unpatch_user_command = function(plugin_name)
 		require("dispatcher").reset_all_patches()
 		return
 	else
-		local plugin_data = require("dispatcher").get_plugin_data(plugin_name)
+		local plugin_data = require("dispatcher").patched_plugins[plugin_name]
 
 		if plugin_data == nil then
 			vim.notify("Dispatcher: failed to find plugin {" .. plugin_name .. "}")
@@ -71,7 +71,6 @@ local handle_user_commands = function(opts)
 			vim.notify("Dispatcher: attempted to call unknown command {" .. desired_user_command .. "}")
 			return nil
 		end
-		vim.notify(tostring(vim.inspect(command)))
 
 		if command.nargs == "?" then
 			command.func(provided_args[2]) -- Second arg or nil
