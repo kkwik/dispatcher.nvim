@@ -23,7 +23,7 @@ M.default_config = {
 
 M.setup = function(cfg)
 	if vim.fn.executable("git") == 0 then
-		print("Dispatcher: git not available, aborting")
+		vim.notify("Dispatcher: git not available, aborting", vim.log.levels.ERROR)
 		return
 	end
 
@@ -32,7 +32,7 @@ M.setup = function(cfg)
 	if vim.fn.isdirectory(M.config.patches_directory) == 0 then
 		vim.notify(
 			"Dispatcher: could not find configured patches directory {" .. M.config.patches_directory .. "}",
-			vim.log.levels.WARN
+			vim.log.levels.ERROR
 		)
 		return
 	end
@@ -40,7 +40,7 @@ M.setup = function(cfg)
 	if vim.fn.isdirectory(M.config.plugin_directory) == 0 then
 		vim.notify(
 			"Dispatcher: could not find configured plugin directory {" .. M.config.plugin_directory .. "}",
-			vim.log.levels.WARN
+			vim.log.levels.ERROR
 		)
 		return
 	end
