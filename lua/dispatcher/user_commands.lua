@@ -1,8 +1,46 @@
-local U = {}
+---@param plugin_name string?
+local patch_user_command = function(plugin_name)
+	if plugin_name == nil then
+		require("dispatcher").apply_all_patches()
+		return
+	else
+		local plugin_data = require("dispatcher").get_plugin_data(plugin_name)
+
+		if plugin_data == nil then
+			vim.notify("Dispatcher: failed to find plugin {" .. plugin_name .. "}")
+			return
+		end
+
+		local result = require("dispatcher").apply_plugin_patches(plugin_data)
+		if result.results == false then
+			vim.notify("Dispatcher: failed to patch plugin {" .. plugin_name("}"))
+		end
+	end
+end
+
+---@param plugin_name string?
+local unpatch_user_command = function(plugin_name)
+	if plugin_name == nil then
+		require("dispatcher").reset_all_patches()
+		return
+	else
+		local plugin_data = require("dispatcher").get_plugin_data(plugin_name)
+
+		if plugin_data == nil then
+			vim.notify("Dispatcher: failed to find plugin {" .. plugin_name .. "}")
+			return
+		end
+
+		local result = require("dispatcher").reset_plugin_patches(plugin_data)
+		if result.results == false then
+			vim.notify("Dispatcher: failed to reset plugin {" .. plugin_name("}"))
+		end
+	end
+end
 
 local user_commands = {
-	{ name = "patch", func = U.patch_user_command, nargs = "?" },
-	{ name = "unpatch", func = U.unpatch_user_command, nargs = "?" },
+	{ name = "patch", func = patch_user_command, nargs = "?" },
+	{ name = "unpatch", func = unpatch_user_command, nargs = "?" },
 }
 -- Allow indexing by name
 setmetatable(user_commands, {
@@ -20,15 +58,7 @@ setmetatable(user_commands, {
 	end,
 })
 
-U.setup_user_commands = function()
-	vim.api.nvim_create_user_command(
-		"Dispatcher",
-		U.handle_user_commands,
-		{ desc = "Run Dispatcher commands", nargs = "*" }
-	)
-end
-
-U.handle_user_commands = function(opts)
+local handle_user_commands = function(opts)
 	local provided_args = opts.fargs
 
 	if #provided_args == 0 then
@@ -52,44 +82,5 @@ U.handle_user_commands = function(opts)
 	end
 end
 
----@param plugin_name string?
-U.patch_user_command = function(plugin_name)
-	if plugin_name == nil then
-		M.apply_all_patches()
-		return
-	else
-		local plugin_data = M.get_plugin_data(plugin_name)
-
-		if plugin_data == nil then
-			vim.notify("Dispatcher: failed to find plugin {" .. plugin_name .. "}")
-			return
-		end
-
-		local result = M.apply_plugin_patches(plugin_data)
-		if result.results == false then
-			vim.notify("Dispatcher: failed to patch plugin {" .. plugin_name("}"))
-		end
-	end
-end
-
----@param plugin_name string?
-U.unpatch_user_command = function(plugin_name)
-	if plugin_name == nil then
-		M.reset_all_patches()
-		return
-	else
-		local plugin_data = M.get_plugin_data(plugin_name)
-
-		if plugin_data == nil then
-			vim.notify("Dispatcher: failed to find plugin {" .. plugin_name .. "}")
-			return
-		end
-
-		local result = M.reset_plugin_patches(plugin_data)
-		if result.results == false then
-			vim.notify("Dispatcher: failed to reset plugin {" .. plugin_name("}"))
-		end
-	end
-end
-
-return U
+-- If this file is require'd, create user command
+vim.api.nvim_create_user_command("Dispatcher", handle_user_commands, { desc = "Run Dispatcher commands", nargs = "*" })

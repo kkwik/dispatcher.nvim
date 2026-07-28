@@ -56,7 +56,7 @@ M.setup = function(cfg)
 	end
 
 	if M.config.create_user_commands == true then
-		U.setup_user_commands()
+		require("dispatcher.user_commands")
 	end
 end
 
