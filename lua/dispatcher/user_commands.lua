@@ -37,7 +37,7 @@ local user_commands = {
 
 				local result = require("dispatcher").reset_plugin_patches(plugin_data)
 				if result.results == false then
-					vim.notify("Dispatcher: failed to reset plugin {" .. plugin_name("}"))
+					vim.notify("Dispatcher: failed to reset plugin {" .. plugin_name .. "}")
 				end
 			end
 		end,
