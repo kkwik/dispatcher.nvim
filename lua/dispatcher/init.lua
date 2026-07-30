@@ -152,7 +152,7 @@ M.create_patch_window = function(window_title)
 end
 
 ---@param operation_result PluginOperationResult
----@returns string[]
+---@return string[]
 M.git_op_result_to_table = function(operation_result)
 	local lines = {}
 	table.insert(lines, operation_result.name)
@@ -175,7 +175,7 @@ M.git_op_result_to_table = function(operation_result)
 end
 
 ---@param operation_results PluginOperationResult[]
----@returns string[]
+---@return string[]
 M.list_of_git_ops_result_to_table = function(operation_results)
 	local lines = {}
 

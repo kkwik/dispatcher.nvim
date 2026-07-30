@@ -38,7 +38,7 @@ setmetatable(git_actions, {
 })
 
 ---@param plugin_data PluginData
----@param git_action_name string
+---@param git_action_name "patch" | "unpatch" | "status"
 ---@param sort_reverse boolean
 ---@return PluginOperationResult
 G.apply_git_action_to_plugin = function(plugin_data, git_action_name, sort_reverse)
