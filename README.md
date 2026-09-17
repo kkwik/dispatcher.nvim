@@ -2,6 +2,8 @@
 
 On occasion you may have a Neovim plugin you use, but find that you wish some aspect of it's behavior were different. If the plugin does not expose configuration for that behavior your options are to attempt to have the maintainer(s) upstream your change, maintain a fork of the plugin, or maintain patches against the upstream. This project is intended to be a minimal helper tool for the latter use case.
 
+This plugin was created because I 1) wanted a minor tweak in a plugin I use and 2) wanted to learn about how plugins work in Neovim.
+
 ## Features
 
 The functionality provided by this plugin is sparse.
