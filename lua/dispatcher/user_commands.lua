@@ -43,6 +43,27 @@ local user_commands = {
 		end,
 		nargs = "?",
 	},
+	{
+		name = "status",
+		func = function(plugin_name)
+			if plugin_name == nil then
+				local results = require("dispatcher").all_plugin_patches_status()
+				require("dispatcher").show_results(results, "Check Patches")
+				return
+			else
+				local plugin_data = require("dispatcher").patched_plugins[plugin_name]
+
+				if plugin_data == nil then
+					vim.notify("Dispatcher: failed to find plugin {" .. plugin_name .. "}")
+					return
+				end
+
+				local result = require("dispatcher").plugin_patches_status(plugin_data)
+				require("dispatcher").show_results({ result }, "Check Patches")
+			end
+		end,
+		nargs = "?",
+	},
 }
 -- Allow indexing by name
 setmetatable(user_commands, {
