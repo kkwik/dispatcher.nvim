@@ -42,6 +42,12 @@ setmetatable(git_actions, {
 ---@param sort_reverse boolean
 ---@return PluginOperationResult
 G.apply_git_action_to_plugin = function(plugin_data, git_action_name, sort_reverse)
+	local git_action = git_actions[git_action_name]
+	if git_action == nil then
+		vim.notify("Dispatcher: invalid git action {" .. git_action_name .. "}")
+		return
+	end
+
 	local patches = vim.fn.deepcopy(plugin_data.source_paths)
 
 	if sort_reverse then
@@ -52,23 +58,17 @@ G.apply_git_action_to_plugin = function(plugin_data, git_action_name, sort_rever
 		end)
 	end
 
+	-- Setup return object
 	---@type PluginOperationResult
 	local git_apply_results = {
 		name = plugin_data.name,
 		results = {},
 	}
-
 	for _, patch in ipairs(patches) do
 		git_apply_results.results[patch] = nil
 	end
 
 	for _, patch in ipairs(patches) do
-		local git_action = git_actions[git_action_name]
-		if git_action == nil then
-			vim.notify("Dispatcher: invalid git action {" .. git_action_name .. "}")
-			return
-		end
-
 		local command = vim.fn.deepcopy(git_action.generator(plugin_data))
 		table.insert(command, patch)
 
