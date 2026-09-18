@@ -221,7 +221,7 @@ end
 ---
 
 ---@param plugin_data PluginData
----@return PluginOperationResult
+---@return PluginOperationResult|nil
 M.apply_plugin_patches = function(plugin_data)
 	return G.apply_git_action_to_plugin(plugin_data, "patch", false)
 end
@@ -236,7 +236,7 @@ end
 ---
 
 ---@param plugin_data PluginData
----@return PluginOperationResult
+---@return PluginOperationResult|nil
 M.reset_plugin_patches = function(plugin_data)
 	return G.apply_git_action_to_plugin(plugin_data, "unpatch", true)
 end
@@ -251,7 +251,7 @@ end
 ---
 
 ---@param plugin_data PluginData
----@return PluginOperationResult
+---@return PluginOperationResult|nil
 M.plugin_patches_status = function(plugin_data)
 	return G.apply_git_action_to_plugin(plugin_data, "status", false)
 end
@@ -265,6 +265,9 @@ end
 ---@return boolean
 M.plugin_patches_applied = function(plugin_data)
 	local git_op_results = M.plugin_patches_status(plugin_data)
+	if git_op_results == nil then
+		return false
+	end
 
 	for _, value in pairs(git_op_results.results) do
 		if value == false then

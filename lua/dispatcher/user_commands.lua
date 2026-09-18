@@ -14,7 +14,7 @@ local user_commands = {
 				end
 
 				local result = require("dispatcher").apply_plugin_patches(plugin_data)
-				if result.results == false then
+				if result == nil or result.results == false then
 					vim.notify("Dispatcher: failed to patch plugin {" .. plugin_name("}"))
 				end
 			end
@@ -36,7 +36,7 @@ local user_commands = {
 				end
 
 				local result = require("dispatcher").reset_plugin_patches(plugin_data)
-				if result.results == false then
+				if result == nil or result.results == false then
 					vim.notify("Dispatcher: failed to reset plugin {" .. plugin_name .. "}")
 				end
 			end
